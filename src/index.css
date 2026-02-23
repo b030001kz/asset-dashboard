@@ -1,0 +1,26 @@
+/* 
+  Reset Styles: 
+  Viteのデフォルト設定がアプリのレイアウトを破壊していたため、
+  すべてをリセットしてフルスクリーン表示を可能にします。
+*/
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #020617;
+  display: block;
+  /* Flexを解除 */
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  /* 制限を解除 */
+}
