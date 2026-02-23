@@ -347,11 +347,46 @@ function App() {
                 </nav>
 
                 <div className="sidebar-bottom">
-                    <div className="insight-pill-sidebar mb-4">
-                        <div className="label">予測配当 (1日)</div>
-                        <div className="value">¥{cashFlowAnalysis.daily.toLocaleString()}</div>
+                    <div className="sidebar-widgets px-4 mb-6">
+                        <div className="widget-row mb-4">
+                            <div className="widget-item">
+                                <span className="label text-[10px] uppercase text-slate-500 font-bold block mb-1">Total Assets</span>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-xl font-black text-white font-mono">¥{totalAssets.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="widget-row mb-4">
+                            <div className="widget-item">
+                                <span className="label text-[10px] uppercase text-slate-500 font-bold block mb-1">Goal Progress</span>
+                                <div className="progress-mini-bar">
+                                    <div className="fill shadow-glow" style={{ width: `${mainGoalProgress}%`, background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }}></div>
+                                </div>
+                                <div className="flex justify-between mt-1">
+                                    <span className="text-[10px] text-slate-400 font-mono">{mainGoalProgress}%</span>
+                                    <span className="text-[10px] text-slate-400">FINANCE PRO</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="widget-row mb-4">
+                            <div className="widget-item bg-blue-500/10 border border-blue-500/20 p-2 rounded-xl">
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="label text-[10px] uppercase text-blue-400 font-bold">Health Score</span>
+                                    <ShieldCheck size={12} className="text-blue-400" />
+                                </div>
+                                <div className="text-lg font-black text-white font-mono">{portfolioHealth.score}<span className="text-xs text-slate-500 ml-0.5">/100</span></div>
+                            </div>
+                        </div>
+
+                        <div className="insight-pill-sidebar mb-4">
+                            <div className="label">予測配当 (1日)</div>
+                            <div className="value">¥{cashFlowAnalysis.daily.toLocaleString()}</div>
+                        </div>
                     </div>
-                    <div className="profile-mini">
+
+                    <div className="profile-mini ml-4">
                         <div className="avatar shadow-glow">JP</div>
                         <div className="profile-info">
                             <p className="name">Asset Manager</p>
