@@ -988,6 +988,92 @@ button {
     gap: 8px;
 }
 
+/* --- 月次管理テーブル --- */
+.monthly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.monthly-table th,
+.monthly-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.monthly-table th {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-align: right;
+}
+
+.monthly-table th:first-child {
+    text-align: left;
+}
+
+.monthly-table td {
+    text-align: right;
+}
+
+.monthly-table td:first-child {
+    text-align: left;
+}
+
+.monthly-total-row {
+    border-top: 2px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.col-highlight {
+    background: rgba(59, 130, 246, 0.06);
+}
+
+/* --- チャートレジェンド --- */
+.chart-legend-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.chart-legend-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    opacity: 0.85;
+}
+
+/* --- サイドバーリンク --- */
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-link:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+/* --- スコアサフィックス --- */
+.score-max {
+    font-size: 14px;
+    color: #64748b;
+}
+
 /* --- ユーティリティ --- */
 .fade-in {
     animation: fadeIn 0.12s ease-out;
@@ -1013,6 +1099,14 @@ button {
 
 .text-accent {
     color: var(--color-accent);
+}
+
+.fw-600 {
+    font-weight: 600;
+}
+
+.fw-700 {
+    font-weight: 700;
 }
 
 .mb-16 {
