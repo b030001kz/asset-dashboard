@@ -129,6 +129,11 @@ function App() {
 
     const [selectedDetail, setSelectedDetail] = useState<{ category?: string, label?: string } | null>(null)
 
+    // Simulator States (Version 7.0)
+    const [simSavings, setSimSavings] = useState(100000)
+    const [simReturn, setSimReturn] = useState(5)
+    const [simYears, setSimYears] = useState(20)
+
 
     // Data Fetching
     const { data, isLoading, error, refetch } = useQuery<GasResponse>({
@@ -283,22 +288,19 @@ function App() {
         }).filter(d => d.amount > 0)
     }, [effectiveData, totalAssets])
 
-    // Intelligence: Monte Carlo Future Simulation
+    // Intelligence: Monte Carlo Future Simulation (Interactive v7.0)
     const simulationData = useMemo(() => {
-        const years = 20
-        const monthlySavings = 100000 // 仮の毎月積立額
-        const expectedReturn = 0.05 // 年利5%
-        const volatility = 0.15 // リスク15%
+        const monthlySavings = simSavings
+        const expectedReturn = simReturn / 100
+        const volatility = 0.15
 
         const results = []
-        for (let y = 0; y <= years; y++) {
+        for (let y = 0; y <= simYears; y++) {
             const time = y
-            // 複利計算 + 積立 (簡易モデル)
             const baseAmount = totalAssets * Math.pow(1 + expectedReturn, time)
-            const savingsAmount = monthlySavings * 12 * ((Math.pow(1 + expectedReturn, time) - 1) / expectedReturn)
+            const savingsAmount = monthlySavings * 12 * (expectedReturn === 0 ? time : ((Math.pow(1 + expectedReturn, time) - 1) / expectedReturn))
             const p50 = Math.floor(baseAmount + savingsAmount)
 
-            // 確率的広がり (2*sigma)
             const drift = (expectedReturn - 0.5 * Math.pow(volatility, 2)) * time
             const shockP90 = Math.exp(drift + volatility * Math.sqrt(time) * 1.28)
             const shockP10 = Math.exp(drift - volatility * Math.sqrt(time) * 1.28)
@@ -311,7 +313,7 @@ function App() {
             })
         }
         return results
-    }, [totalAssets])
+    }, [totalAssets, simSavings, simReturn, simYears])
 
     return (
         <div className={`app-root ${isSidebarOpen ? 'sb-open' : 'sb-closed'}`}>
@@ -617,19 +619,45 @@ function App() {
                             </div>
 
                             <div className="analytics-grid">
-                                <div className="card large-viz-card">
+                                <div className="card large-viz-card interactive-viz">
                                     <div className="card-header">
                                         <div className="flex items-center gap-3">
                                             <div className="icon-pill bg-blue-500/20 text-blue-400"><TrendingUp size={18} /></div>
-                                            <h4>資産成長シミュレーション (20年予測)</h4>
+                                            <h4>資産成長シミュレーター (カスタム試算)</h4>
                                         </div>
-                                        <div className="legend-p">
+                                    </div>
+
+                                    {/* Simulator Controls */}
+                                    <div className="simulator-controls mb-6 grid grid-cols-3 gap-6 p-4 bg-white/5 rounded-2xl border border-white/5">
+                                        <div className="control-group">
+                                            <div className="flex justify-between mb-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Monthly Savings</label>
+                                                <span className="text-xs font-bold text-blue-400">¥{(simSavings / 10000).toFixed(1)}万</span>
+                                            </div>
+                                            <input type="range" min="0" max="1000000" step="10000" value={simSavings} onChange={e => setSimSavings(Number(e.target.value))} className="slider-pro" />
+                                        </div>
+                                        <div className="control-group">
+                                            <div className="flex justify-between mb-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Annual Return</label>
+                                                <span className="text-xs font-bold text-emerald-400">{simReturn}%</span>
+                                            </div>
+                                            <input type="range" min="0" max="15" step="0.5" value={simReturn} onChange={e => setSimReturn(Number(e.target.value))} className="slider-pro" />
+                                        </div>
+                                        <div className="control-group">
+                                            <div className="flex justify-between mb-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Duration (Years)</label>
+                                                <span className="text-xs font-bold text-purple-400">{simYears}Y</span>
+                                            </div>
+                                            <input type="range" min="1" max="40" step="1" value={simYears} onChange={e => setSimYears(Number(e.target.value))} className="slider-pro" />
+                                        </div>
+                                    </div>
+
+                                    <div className="viz-container relative">
+                                        <div className="legend-p absolute top-0 right-0 z-10 p-2">
                                             <span className="p-dot p90"></span> ベスト
                                             <span className="p-dot p50"></span> 平均
                                             <span className="p-dot p10"></span> ワースト
                                         </div>
-                                    </div>
-                                    <div className="viz-container">
                                         <ResponsiveContainer width="100%" height={300}>
                                             <AreaChart data={simulationData}>
                                                 <defs>
@@ -645,7 +673,7 @@ function App() {
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
-                                    <p className="viz-note">※年利5%、リスク(不確実性)15%、毎月10万円の積立を想定したモンテカルロ法による試算です。</p>
+                                    <p className="viz-note mt-4">※設定された利回りと積立額に基づく将来予測です。リスク係数は15%で固定されています。</p>
                                 </div>
 
                                 <div className="card middle-card">
@@ -795,6 +823,29 @@ function App() {
                     )}
                 </div>
             </div>
+
+            {/* Mobile Bottom Navigation (v7.0) */}
+            <nav className="mobile-bottom-nav">
+                <button className={`nav-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveView('dashboard')}>
+                    <LayoutDashboard size={20} />
+                    <span>Home</span>
+                </button>
+                <button className={`nav-item ${activeView === 'analytics' ? 'active' : ''}`} onClick={() => setActiveView('analytics')}>
+                    <TrendingUp size={20} />
+                    <span>Analysis</span>
+                </button>
+                <button className="nav-item fab" onClick={() => setActiveModal('Entry')}>
+                    <div className="fab-inner shadow-gold"><Plus size={24} /></div>
+                </button>
+                <button className={`nav-item ${activeView === 'goals' ? 'active' : ''}`} onClick={() => setActiveView('goals')}>
+                    <Target size={20} />
+                    <span>Goals</span>
+                </button>
+                <button className="nav-item" onClick={() => setActiveModal('Entry')}>
+                    <Settings size={20} />
+                    <span>Settings</span>
+                </button>
+            </nav>
 
             {/* Entry Modal */}
             {activeModal && (

@@ -517,6 +517,158 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* --- Mobile First Revolution (v7.0) --- */
+
+/* Bottom Nav (Mobile Only) */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom);
+    justify-content: space-around;
+    align-items: center;
+}
+
+.mobile-bottom-nav .nav-item {
+    background: none;
+    border: none;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 10px;
+    transition: 0.2s;
+}
+
+.mobile-bottom-nav .nav-item.active {
+    color: var(--accent);
+}
+
+.mobile-bottom-nav .fab {
+    transform: translateY(-20px);
+    padding: 0;
+}
+
+.fab-inner {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border: 4px solid #020617;
+}
+
+.shadow-gold {
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+}
+
+/* Simulator Sliders */
+.slider-pro {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    outline: none;
+}
+
+.slider-pro::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border: 3px solid var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+/* Layout Adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none !important;
+    }
+
+    .mobile-bottom-nav {
+        display: flex;
+    }
+
+    .app-root {
+        height: auto;
+        min-height: 100vh;
+        padding-bottom: 90px;
+    }
+
+    .workspace {
+        height: auto;
+        overflow: visible;
+    }
+
+    .view-container {
+        padding: 1rem;
+    }
+
+    .top-row,
+    .middle-row,
+    .analytics-grid,
+    .insight-row {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    .hero-card h3 {
+        font-size: 2rem;
+    }
+
+    .card {
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+    }
+
+    .simulator-controls {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .workspace-header {
+        padding: 0 1rem;
+        height: 70px;
+    }
+
+    .header-left h2 {
+        font-size: 1.25rem;
+    }
+}
+
+.grid {
+    display: grid;
+}
+
+.grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.gap-6 {
+    gap: 1.5rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
 .animate-fade-in {
     animation: fadeIn 0.5s ease-out;
 }
