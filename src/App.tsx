@@ -245,26 +245,20 @@ function App() {
                         <Target size={20} /> <span>目標トラッキング</span>
                     </button>
                 </nav>
-                <div className="sidebar-bottom">
-                    <div className="sidebar-widgets px-4 mb-6">
-                        <div className="widget-row mb-4">
-                            <div className="widget-item">
-                                <span className="label text-[10px] uppercase text-slate-500 font-bold block mb-1">Portfolio</span>
-                                <div className="text-xl font-black text-white font-mono">¥{totalAssets.toLocaleString()}</div>
-                            </div>
+                <div className="sidebar-bottom p-6">
+                    <div className="card-premium-stats p-6 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md">
+                        <div className="mb-6">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Total Managed Assets</span>
+                            <div className="text-2xl font-black text-white font-mono leading-none">¥{totalAssets.toLocaleString()}</div>
                         </div>
-                        <div className="widget-row mb-4">
-                            <div className="widget-item bg-blue-500/10 border border-blue-500/20 p-2 rounded-xl">
-                                <span className="label text-[10px] uppercase text-blue-400 font-bold block mb-1">Health Score</span>
-                                <div className="text-lg font-black text-white font-mono">{portfolioHealth.score}</div>
+                        <div className="flex justify-between items-center pt-6 border-t border-white/5">
+                            <div>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Portfolio Health</span>
+                                <div className="text-lg font-black text-blue-400 font-mono">{portfolioHealth.score}%</div>
                             </div>
-                        </div>
-                    </div>
-                    <div className="profile-mini ml-4">
-                        <div className="avatar">JP</div>
-                        <div className="profile-info">
-                            <p className="name">Asset Manager</p>
-                            <p className="status">Online</p>
+                            <div className="w-10 h-10 rounded-full border-2 border-slate-700 flex items-center justify-center">
+                                <ShieldCheck size={20} className="text-blue-500" />
+                            </div>
                         </div>
                     </div>
                 </div>
