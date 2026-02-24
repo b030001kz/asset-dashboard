@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
     Wallet, TrendingUp, Activity, Plus, RefreshCw,
     LayoutDashboard, Target, BarChart3, ShieldCheck,
-    CircleDot, X
+    CircleDot, X, CreditCard, Landmark, ArrowDownCircle
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -34,49 +34,73 @@ interface Goal {
     deadline: string
 }
 
+interface NormaItem {
+    name: string
+    amount: number
+    norma: number
+}
+
 interface GasResponse {
     raw: RawAsset[]
     latestData: RawAsset[]
     summary: SummaryAsset[]
     goals: Goal[]
     latestMonth: string
+    liabilities?: number
+    insurance?: number
 }
 
-// --- モックデータ（API未接続時のフォールバック） ---
+// --- モックデータ（26/02/28時点の実データ構造） ---
 const MOCK_DATA: GasResponse = {
-    latestMonth: '2024/02',
+    latestMonth: '2026/02',
     summary: [
-        { category: '現預金', balance: 1850000 },
-        { category: '証券口座', balance: 4650000 },
-        { category: '仮想通貨', balance: 920000 },
-        { category: '保険・年金', balance: 2110000 }
+        { category: '預金', balance: 6710078 },
+        { category: '証券', balance: 10556200 },
+        { category: '暗号資産', balance: 300000 },
+        { category: '保険・年金', balance: 3026000 }
     ],
     latestData: [
-        { month: '2024/02', category: '現預金', label: '楽天銀行', balance: 1350000 },
-        { month: '2024/02', category: '現預金', label: '三菱UFJ', balance: 500000 },
-        { month: '2024/02', category: '証券口座', label: 'SBI証券', balance: 3250000 },
-        { month: '2024/02', category: '証券口座', label: 'マネックス', balance: 1400000 },
-        { month: '2024/02', category: '仮想通貨', label: 'ビットコイン', balance: 920000 },
-        { month: '2024/02', category: '保険・年金', label: '積立生保', balance: 1100000 },
-        { month: '2024/02', category: '保険・年金', label: '小規模共済', balance: 1010000 }
+        { month: '2026/02', category: '預金', label: '楽天銀行', balance: 537020 },
+        { month: '2026/02', category: '預金', label: 'みずほ銀行', balance: 145549 },
+        { month: '2026/02', category: '預金', label: 'SBI銀行', balance: 4617969 },
+        { month: '2026/02', category: '預金', label: '住友銀行', balance: 1409540 },
+        { month: '2026/02', category: '暗号資産', label: '暗号資産', balance: 300000 },
+        { month: '2026/02', category: '証券', label: 'SBI/みずほ証券', balance: 8156200 },
+        { month: '2026/02', category: '保険・年金', label: '小規模共済&iDeCo', balance: 3026000 },
+        { month: '2026/02', category: '証券', label: 'SBI証券(積立)', balance: 2400000 }
     ],
     raw: [],
     goals: [
-        { name: '資産1000万円達成', category: '全体', target: 10000000, deadline: '2025-12-31' },
-        { name: '新車購入資金', category: '貯蓄', target: 3000000, deadline: '2024-06-30' }
-    ]
+        { name: '金融資産3,150万円', category: '全体', target: 31500000, deadline: '2030-12-31' },
+        { name: '年間ノルマ達成', category: '積立', target: 5993000, deadline: '2026-12-31' }
+    ],
+    liabilities: 483892,
+    insurance: 1966200
 }
 
-// --- 定数 ---
-const CATEGORIES = ['現預金', '証券口座', '仮想通貨', '保険・年金', 'その他']
-const ACCOUNTS = ['楽天銀行', '三菱UFJ', '三井住友', 'SBI証券', 'マネックス証券', 'ビットフライヤー', '積立生保', '小規模共済']
+// --- ノルマデータ ---
+const MOCK_NORMA: NormaItem[] = [
+    { name: '小規模共済', amount: 840000, norma: 840000 },
+    { name: 'iDeCo', amount: 276000, norma: 253000 },
+    { name: '積立NISA', amount: 1200000, norma: 1100000 },
+    { name: '個別NISA', amount: 2400000, norma: 0 }
+]
 
-// --- カテゴリの色とアイコンの対応表 ---
+// --- 定数 ---
+const CATEGORIES = ['預金', '証券', '暗号資産', '保険・年金', 'その他']
+const ACCOUNTS = [
+    '楽天銀行', 'みずほ銀行', 'SBI銀行', '住友銀行',
+    'SBI/みずほ証券', 'SBI証券(積立)',
+    '暗号資産', '小規模共済&iDeCo'
+]
+
+// --- カテゴリの色とアイコン ---
 const CATEGORY_STYLES: Record<string, { color: string, icon: typeof Wallet }> = {
-    '現預金': { color: '#3b82f6', icon: Wallet },
-    '証券口座': { color: '#8b5cf6', icon: TrendingUp },
-    '仮想通貨': { color: '#f59e0b', icon: Activity },
+    '預金': { color: '#3b82f6', icon: Landmark },
+    '証券': { color: '#8b5cf6', icon: TrendingUp },
+    '暗号資産': { color: '#f59e0b', icon: Activity },
     '保険・年金': { color: '#10b981', icon: ShieldCheck },
+    '借入': { color: '#ef4444', icon: CreditCard },
     'その他': { color: '#64748b', icon: CircleDot }
 }
 
@@ -84,6 +108,7 @@ const getCategoryStyle = (cat: string) => CATEGORY_STYLES[cat] || CATEGORY_STYLE
 
 // --- 金額フォーマット ---
 const formatYen = (n: number) => `¥${n.toLocaleString()}`
+const formatMan = (n: number) => `${(n / 10000).toFixed(0)}万`
 
 // --- ビュー定義 ---
 type ViewId = 'dashboard' | 'analytics' | 'goals'
@@ -98,6 +123,7 @@ function App() {
     const [activeView, setActiveView] = useState<ViewId>('dashboard')
     const [showModal, setShowModal] = useState(false)
     const [useMock, setUseMock] = useState(false)
+    const [isRefreshing, setIsRefreshing] = useState(false)
 
     // フォーム
     const [formData, setFormData] = useState({
@@ -127,6 +153,13 @@ function App() {
         retry: 1
     })
 
+    // --- 更新ボタン処理 ---
+    const handleRefresh = useCallback(async () => {
+        setIsRefreshing(true)
+        await refetch()
+        setTimeout(() => setIsRefreshing(false), 600)
+    }, [refetch])
+
     // --- データ登録 ---
     const mutation = useMutation({
         mutationFn: async (newData: typeof formData) => {
@@ -155,6 +188,9 @@ function App() {
         (effectiveData.summary || []).reduce((s, item) => s + (Number(item.balance) || 0), 0),
         [effectiveData]
     )
+    const liabilities = effectiveData.liabilities ?? MOCK_DATA.liabilities ?? 0
+    const insurance = effectiveData.insurance ?? MOCK_DATA.insurance ?? 0
+    const netAssets = totalAssets - liabilities
 
     // 円グラフ用データ
     const pieData = useMemo(() =>
@@ -178,6 +214,11 @@ function App() {
         return Math.max(0, Math.min(100, score))
     }, [effectiveData, totalAssets])
 
+    // ノルマ計算
+    const normaTotal = MOCK_NORMA.reduce((s, n) => s + n.amount, 0)
+    const normaTarget = MOCK_NORMA.reduce((s, n) => s + n.norma, 0)
+    const normaRemaining = Math.max(0, normaTarget - normaTotal)
+
     // シミュレーションデータ
     const simData = useMemo(() => {
         const rate = simReturn / 100
@@ -199,12 +240,11 @@ function App() {
         return results
     }, [totalAssets, simSavings, simReturn, simYears])
 
-    // --- ビューごとのタイトル ---
     const viewTitle = VIEWS.find(v => v.id === activeView)?.label || ''
 
     return (
         <div className="app-root">
-            {/* サイドバー */}
+            {/* サイドバー（PC） */}
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <div className="sidebar-brand">
@@ -215,38 +255,48 @@ function App() {
                         </div>
                     </div>
                 </div>
-
                 <nav className="sidebar-nav">
                     {VIEWS.map(v => (
-                        <button
-                            key={v.id}
-                            className={`nav-btn ${activeView === v.id ? 'active' : ''}`}
-                            onClick={() => setActiveView(v.id)}
-                        >
-                            <v.icon size={18} />
-                            {v.label}
+                        <button key={v.id} className={`nav-btn ${activeView === v.id ? 'active' : ''}`}
+                            onClick={() => setActiveView(v.id)}>
+                            <v.icon size={18} />{v.label}
                         </button>
                     ))}
                 </nav>
-
                 <div className="sidebar-footer">
                     <div className="sidebar-stats">
-                        <div className="sidebar-stats-label">総資産</div>
-                        <div className="sidebar-stats-value">{formatYen(totalAssets)}</div>
+                        <div className="sidebar-stats-label">純資産</div>
+                        <div className="sidebar-stats-value">{formatYen(netAssets)}</div>
                     </div>
                 </div>
             </aside>
 
             {/* メインコンテンツ */}
             <main className="main-content">
+                {/* モバイルヘッダー */}
+                <div className="mobile-header">
+                    <h1 className="mobile-header-title">{viewTitle}</h1>
+                    <div className="mobile-header-actions">
+                        <button className="btn-icon" onClick={handleRefresh} title="データ更新" disabled={isRefreshing}>
+                            <RefreshCw size={18} className={isRefreshing ? 'spin' : ''} />
+                        </button>
+                        <button className="btn-icon" onClick={() => setShowModal(true)} title="新規登録">
+                            <Plus size={18} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* PCヘッダー */}
                 <div className="page-header">
                     <div>
                         <h1 className="page-title">{viewTitle}</h1>
                         <div className="page-subtitle">{effectiveData.latestMonth} 時点{useMock ? '（デモデータ）' : ''}</div>
                     </div>
-                    <button className="btn-icon" onClick={() => refetch()} title="データ更新">
-                        <RefreshCw size={16} />
-                    </button>
+                    <div className="page-header-actions">
+                        <button className="btn-icon" onClick={handleRefresh} title="データ更新" disabled={isRefreshing}>
+                            <RefreshCw size={16} className={isRefreshing ? 'spin' : ''} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* ========== ダッシュボード ========== */}
@@ -255,16 +305,16 @@ function App() {
                         {/* サマリーカード */}
                         <div className="summary-cards">
                             <div className="summary-card">
-                                <div className="card-label">総資産額</div>
-                                <div className="card-value">{formatYen(totalAssets)}</div>
+                                <div className="card-label">金融資産合計</div>
+                                <div className="card-value">{formatMan(totalAssets)}</div>
                             </div>
                             <div className="summary-card">
-                                <div className="card-label">資産カテゴリ数</div>
-                                <div className="card-value card-value-sm">{effectiveData.summary?.length || 0} カテゴリ</div>
+                                <div className="card-label">借入</div>
+                                <div className="card-value card-value-sm text-negative">{formatYen(liabilities)}</div>
                             </div>
                             <div className="summary-card">
-                                <div className="card-label">口座数</div>
-                                <div className="card-value card-value-sm">{effectiveData.latestData?.length || 0} 件</div>
+                                <div className="card-label">純資産</div>
+                                <div className="card-value card-value-sm">{formatMan(netAssets)}</div>
                             </div>
                             <div className="summary-card">
                                 <div className="card-label">分散スコア</div>
@@ -272,30 +322,20 @@ function App() {
                             </div>
                         </div>
 
-                        {/* 円グラフ + 推移 */}
+                        {/* 円グラフ + ノルマ */}
                         <div className="chart-section">
                             <div className="chart-card">
                                 <div className="chart-card-title">カテゴリ別構成比</div>
                                 <ResponsiveContainer width="100%" height={200}>
                                     <PieChart>
-                                        <Pie
-                                            data={pieData}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={55}
-                                            outerRadius={85}
-                                            paddingAngle={2}
-                                            dataKey="value"
-                                            stroke="none"
-                                        >
+                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
+                                            paddingAngle={2} dataKey="value" stroke="none">
                                             {pieData.map((entry, i) => (
                                                 <Cell key={i} fill={entry.color} />
                                             ))}
                                         </Pie>
-                                        <Tooltip
-                                            formatter={(value: number) => formatYen(value)}
-                                            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
-                                        />
+                                        <Tooltip formatter={(value: number) => formatYen(value)}
+                                            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                                 <div className="pie-legend">
@@ -311,33 +351,52 @@ function App() {
                                 </div>
                             </div>
 
+                            {/* 月次ノルマ */}
                             <div className="chart-card">
-                                <div className="chart-card-title">資産推移（直近6ヶ月）</div>
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <AreaChart data={[
-                                        { month: '9月', amount: 6200000 },
-                                        { month: '10月', amount: 6450000 },
-                                        { month: '11月', amount: 6300000 },
-                                        { month: '12月', amount: 7800000 },
-                                        { month: '1月', amount: 8100000 },
-                                        { month: '2月', amount: 9530000 }
-                                    ]}>
-                                        <defs>
-                                            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                                        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
-                                        <Tooltip
-                                            formatter={(v: number) => formatYen(v)}
-                                            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
-                                        />
-                                        <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2} fill="url(#areaGrad)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                                <div className="chart-card-title">月次積立ノルマ</div>
+                                <table className="norma-table">
+                                    <thead>
+                                        <tr>
+                                            <th>項目</th>
+                                            <th>金額</th>
+                                            <th>ノルマ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {MOCK_NORMA.map((n, i) => (
+                                            <tr key={i}>
+                                                <td>{n.name}</td>
+                                                <td className="mono-num">{formatYen(n.amount)}</td>
+                                                <td className="mono-num">{formatYen(n.norma)}</td>
+                                            </tr>
+                                        ))}
+                                        <tr className="norma-total-row">
+                                            <td>合計</td>
+                                            <td className="mono-num">{formatYen(normaTotal)}</td>
+                                            <td className="mono-num">{formatYen(normaTarget)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div className="norma-remaining">
+                                    <span>残ノルマ</span>
+                                    <span className={`mono-num ${normaRemaining === 0 ? 'text-positive' : 'text-negative'}`}>
+                                        {formatYen(normaRemaining)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 保険・その他 */}
+                        <div className="info-bar mb-24">
+                            <div className="info-bar-item">
+                                <ShieldCheck size={14} />
+                                <span>保険</span>
+                                <strong>{formatYen(insurance)}</strong>
+                            </div>
+                            <div className="info-bar-item">
+                                <ArrowDownCircle size={14} />
+                                <span>借入残高</span>
+                                <strong className="text-negative">{formatYen(liabilities)}</strong>
                             </div>
                         </div>
 
@@ -346,7 +405,7 @@ function App() {
                             <h2 className="section-title">資産一覧</h2>
                             <button className="btn-text" onClick={() => setShowModal(true)}>＋ 新規登録</button>
                         </div>
-                        <table className="asset-table">
+                        <table className="asset-table mb-24">
                             <thead>
                                 <tr>
                                     <th>口座名</th>
@@ -365,9 +424,7 @@ function App() {
                                                     <div className="asset-icon" style={{ background: style.color + '18', color: style.color }}>
                                                         <Icon size={16} />
                                                     </div>
-                                                    <div>
-                                                        <div className="asset-label">{asset.label}</div>
-                                                    </div>
+                                                    <div className="asset-label">{asset.label}</div>
                                                 </div>
                                             </td>
                                             <td><span className="asset-category">{asset.category}</span></td>
@@ -422,10 +479,8 @@ function App() {
                                     <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }}
                                         tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
-                                    <Tooltip
-                                        formatter={(v: number) => formatYen(v)}
-                                        contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
-                                    />
+                                    <Tooltip formatter={(v: number) => formatYen(v)}
+                                        contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }} />
                                     <Area type="monotone" dataKey="楽観" stroke="#3b82f6" strokeWidth={2} fill="url(#simGrad)" />
                                     <Area type="monotone" dataKey="中央" stroke="#94a3b8" strokeWidth={1.5} fill="none" />
                                     <Area type="monotone" dataKey="悲観" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="4 4" fill="none" />
@@ -461,15 +516,12 @@ function App() {
                 )}
             </main>
 
-            {/* モバイルナビ */}
+            {/* モバイルボトムナビ */}
             <nav className="mobile-nav">
                 <div className="mobile-nav-inner">
                     {VIEWS.map(v => (
-                        <button
-                            key={v.id}
-                            className={`mobile-nav-btn ${activeView === v.id ? 'active' : ''}`}
-                            onClick={() => setActiveView(v.id)}
-                        >
+                        <button key={v.id} className={`mobile-nav-btn ${activeView === v.id ? 'active' : ''}`}
+                            onClick={() => setActiveView(v.id)}>
                             <v.icon size={20} />
                             <span>{v.label}</span>
                         </button>
