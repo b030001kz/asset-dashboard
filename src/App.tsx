@@ -281,7 +281,7 @@ function App() {
                     </div>
                 </header>
 
-                <div className="view-container">
+                <div className="view-container max-w-[1400px] mx-auto">
                     {activeView === 'dashboard' && (
                         <div className="view-dashboard animate-fade-in">
                             <div className="re-grid grid-cols-2">
