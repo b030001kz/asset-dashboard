@@ -196,7 +196,7 @@ function App() {
         const advice = score > 80 ? '理想的な分散状態です' :
             score > 60 ? '概ね良好ですが、少し偏りがあります' :
                 '特定資産への集中リスクがあります';
-        return { score, advice, statusColor: score > 75 ? '#10b981' : score > 50 ? '#f59e0b' : '#ef4444' }
+        return { score, advice, statusColor: score > 75 ? '#3b82f6' : score > 50 ? '#f59e0b' : '#ef4444' }
     }, [effectiveData, totalAssets])
 
     const simulationData = useMemo(() => {
@@ -299,11 +299,11 @@ function App() {
                                             <AreaChart data={TREND_DATA}>
                                                 <defs>
                                                     <linearGradient id="glowArea" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                                     </linearGradient>
                                                 </defs>
-                                                <Area type="monotone" dataKey="amount" stroke="#10b981" strokeWidth={4} fill="url(#glowArea)" />
+                                                <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={4} fill="url(#glowArea)" />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -314,7 +314,7 @@ function App() {
                                             <span className="label text-slate-500 font-bold uppercase tracking-widest text-[10px]">Security Score</span>
                                             <h4 className="text-xl font-black mt-1">Portfolio Health</h4>
                                         </div>
-                                        <ShieldCheck size={32} className="text-emerald-400" />
+                                        <ShieldCheck size={32} className="text-blue-400" />
                                     </div>
                                     <div className="health-box-luxury">
                                         <div className="health-score-huge">{portfolioHealth.score}</div>
@@ -322,7 +322,7 @@ function App() {
                                             <p className="text-lg font-bold text-white mb-2">{portfolioHealth.advice}</p>
                                             <div className="flex gap-1">
                                                 {[...Array(5)].map((_, i) => (
-                                                    <div key={i} className={`h-2 flex-1 rounded-full ${i < portfolioHealth.score / 20 ? 'bg-emerald-400' : 'bg-white/10'}`}></div>
+                                                    <div key={i} className={`h-2 flex-1 rounded-full ${i < portfolioHealth.score / 20 ? 'bg-blue-400' : 'bg-white/10'}`}></div>
                                                 ))}
                                             </div>
                                         </div>
@@ -332,7 +332,7 @@ function App() {
                             <div className="mt-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h4 className="text-xl font-black uppercase tracking-tight">Active Assets</h4>
-                                    <button className="text-sm font-bold text-emerald-400" onClick={() => setActiveModal('Entry')}>+ ADD NEW</button>
+                                    <button className="text-sm font-bold text-blue-400" onClick={() => setActiveModal('Entry')}>+ ADD NEW</button>
                                 </div>
                                 <div className="asset-cards-list">
                                     {(effectiveData.latestData || []).map((asset, i) => {
@@ -342,7 +342,7 @@ function App() {
                                             <div key={i} className="asset-rich-card animate-in" style={{ animationDelay: `${i * 0.05}s` }}>
                                                 <div className="arc-left">
                                                     <div className="arc-icon-box" style={{ backgroundColor: style.color + '15', color: style.color }}>
-                                                        <Icon size={24} />
+                                                        <Icon size={22} />
                                                     </div>
                                                     <div className="arc-info">
                                                         <h4>{asset.label}</h4>
@@ -366,11 +366,11 @@ function App() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-3xl font-black mb-2">Future Engine</h2>
-                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">AI-Powered Wealth Projection</p>
+                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Wealth Projection</p>
                                     </div>
                                     <div className="viz-legend flex gap-6">
-                                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-400"><span className="w-3 h-3 rounded-full bg-emerald-400"></span> BEST CASE</div>
-                                        <div className="flex items-center gap-2 text-xs font-bold text-blue-400"><span className="w-3 h-3 rounded-full bg-blue-400"></span> MEDIAN</div>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-blue-400"><span className="w-3 h-3 rounded-full bg-blue-400"></span> BEST CASE</div>
+                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400"><span className="w-3 h-3 rounded-full bg-slate-400"></span> MEDIAN</div>
                                         <div className="flex items-center gap-2 text-xs font-bold text-rose-500"><span className="w-3 h-3 rounded-full bg-rose-500"></span> RISK CASE</div>
                                     </div>
                                 </div>
@@ -382,35 +382,35 @@ function App() {
                                     </div>
                                     <div className="pro-slider-group">
                                         <label>ANNUAL RETURN</label>
-                                        <span className="pro-slider-val text-emerald-400">{simReturn}%</span>
+                                        <span className="pro-slider-val text-blue-400">{simReturn}%</span>
                                         <input type="range" min="0" max="20" step="0.5" value={simReturn} onChange={e => setSimReturn(Number(e.target.value))} className="slider-pro" />
                                     </div>
                                     <div className="pro-slider-group">
                                         <label>TIME HORIZON</label>
-                                        <span className="pro-slider-val text-blue-400">{simYears}Y</span>
+                                        <span className="pro-slider-val text-blue-300">{simYears}Y</span>
                                         <input type="range" min="1" max="50" step="1" value={simYears} onChange={e => setSimYears(Number(e.target.value))} className="slider-pro" />
                                     </div>
                                 </div>
                                 <div className="viz-stage">
-                                    <ResponsiveContainer width="100%" height={400}>
+                                    <ResponsiveContainer width="100%" height={320}>
                                         <AreaChart data={simulationData}>
                                             <defs>
                                                 <linearGradient id="proGlow" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
-                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid strokeDasharray="10 10" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                                            <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 12, fontWeight: 800 }} dy={20} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 12, fontWeight: 800 }} dx={-20} />
+                                            <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} dy={20} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} dx={-20} />
                                             <Tooltip
-                                                contentStyle={{ background: '#020617', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '20px' }}
+                                                contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px' }}
                                                 itemStyle={{ fontWeight: 800, color: '#fff' }}
                                                 formatter={(v: any) => [`¥${Number(v).toLocaleString()}`, '']}
                                             />
-                                            <Area type="monotone" dataKey="p90" stroke="#10b981" strokeWidth={3} fill="url(#proGlow)" />
-                                            <Area type="monotone" dataKey="p50" stroke="#3b82f6" strokeWidth={5} fill="none" />
-                                            <Area type="monotone" dataKey="p10" stroke="#ef4444" strokeWidth={3} strokeDasharray="8 8" fill="none" />
+                                            <Area type="monotone" dataKey="p90" stroke="#3b82f6" strokeWidth={3} fill="url(#proGlow)" />
+                                            <Area type="monotone" dataKey="p50" stroke="#94a3b8" strokeWidth={2} fill="none" />
+                                            <Area type="monotone" dataKey="p10" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" fill="none" />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -424,16 +424,16 @@ function App() {
                                     const percent = Math.min(100, Math.floor((totalAssets / goal.target) * 100))
                                     return (
                                         <div key={i} className="card goal-card">
-                                            <div className="flex justify-between items-start mb-8">
-                                                <div className="arc-icon-box" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                                                    <Target size={32} />
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="arc-icon-box" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                                                    <Target size={28} />
                                                 </div>
-                                                <span className="text-3xl font-black text-white">{percent}%</span>
+                                                <span className="text-2xl font-black text-white">{percent}%</span>
                                             </div>
-                                            <h4 className="text-2xl font-black mb-1">{goal.name}</h4>
-                                            <p className="text-slate-500 font-bold mb-6">{goal.deadline} TARGET</p>
-                                            <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full bg-gradient-to-r from-emerald-400 to-blue-500" style={{ width: `${percent}%` }}></div>
+                                            <h4 className="text-xl font-black mb-1">{goal.name}</h4>
+                                            <p className="text-slate-500 font-bold mb-4">{goal.deadline} TARGET</p>
+                                            <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-500" style={{ width: `${percent}%` }}></div>
                                             </div>
                                         </div>
                                     )
@@ -493,7 +493,7 @@ function App() {
                             </div>
                             <div className="form-group">
                                 <label className="text-xs font-bold text-slate-500 block mb-2">BALANCE (JPY)</label>
-                                <input type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-3xl font-black text-emerald-400" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} required />
+                                <input type="number" className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-3xl font-black text-blue-400" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} required />
                             </div>
                             <button type="submit" className="btn-submit-gold mt-4">
                                 UPDATE PORTFOLIO
